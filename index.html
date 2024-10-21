@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>垃圾遊戲</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            user-select: none;
+        }
+        #gameContainer {
+            position: relative;
+            width: 340px;
+            height: 650px;
+        }
+        #gameInfo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 10px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            display: none;
+        }
+        #gameCanvas {
+            border: 1px solid black;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+        }
+        button {
+            font-size: 18px;
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .info-button {
+            background-color: #D3D3D3;
+            color: black;
+        }
+        .info-button:hover {
+            background-color: #A9A9A9;
+        }
+        #restartButton {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            z-index: 10;
+        }
+        #pauseButton, #score {
+            position: absolute;
+            top: 0px;
+            font-size: 14px;
+            padding: 5px 10px;
+        }
+        #pauseButton {
+            right: 38px;
+            background-color: #f44336;
+            font-size: 14px;
+            padding: 5px 10px;
+        }
+        #pauseButton:hover {
+            background-color: #d32f2f;
+        }
+        #score {
+            right: 84px;
+            top: 10px; 
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            border-radius: 5px;
+            display: none;
+        }
+        #buttonContainer {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #mobileControls {
+            display: none;
+            justify-content: space-between;
+            width: 340px;
+            margin-top: 10px;
+        }
+        .mobileButton {
+            width: 100px;
+            height: 50px;
+            font-size: 24px;
+            background-color: #D3D3D3;
+            border: none;
+            border-radius: 10px;
+        }
+        #gameOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.5);
+            color: white;
+            font-size: 24px;
+            text-align: center;
+            z-index: 5;
+        }
+        #pauseMenu {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            z-index: 20;
+        }
+        #pauseMenu button {
+            width: 150px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .infoPopup {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 30;
+            width: 300px;
+            max-width: 90%; 
+        }
+        .closeButton {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="gameContainer">
+        <div id="gameInfo">
+            <div id="playerHealth">血量: 20</div>
+            <div id="playerDamage">箭矢傷害: 10</div>
+            <div id="playerSpeed">橫移速度: 0.5</div>
+            <div id="playerShootSpeed">箭矢發射頻率: 20.0</div>
+            <div id="arrowRange">箭矢飛行距離: 15.0%</div>
+        </div>
+
+        <canvas id="gameCanvas" width="340" height="650" style="display: none;"></canvas>
+        <div id="mobileControls">
+            <button id="leftButton" class="mobileButton">←</button>
+            <button id="rightButton" class="mobileButton">→</button>
+        </div>
+
+        <div id="buttonContainer">
+            <button id="startButton">開始遊戲</button>
+            <button id="howToPlayButton" class="info-button">遊戲玩法</button>
+            <button id="creditsButton" class="info-button">製作資訊</button>
+        </div>
+        
+        <button id="restartButton">重新開始</button>
+        <button id="pauseButton" style="display: none;">II</button>
+        <div id="score" style="display: none;">分數: 0</div>
+
+        <div id="gameOverlay">
+            <h2>遊戲結束</h2>
+            <p id="gameOverReason"></p>
+            <p id="finalScore"></p>
+        </div>
+
+        <div id="pauseMenu">
+            <button id="resumeButton">繼續</button>
+            <button id="restartButtonPause">重新開始</button>
+            <button id="homeButton">回到首頁</button>
+            <button id="toggleInfoButton">顯示資訊</button>
+        </div>
+
+        <div id="howToPlayPopup" class="infoPopup">
+            <span class="closeButton">&times;</span>
+            <h2>遊戲玩法</h2>
+            <p>1. 使用左右方向鍵或 A/D鍵 或 按鈕移動角色</p>
+            <p>2. 自動發射箭矢攻擊敵人</p>
+            <p>3. 收集掉落的 Buff 來增強能力</p>
+            <p>4. 躲避敵人攻擊，生存越久分數越高</p>
+            <p>5. 每 15 個 Buff 後會出現一個 Boss</p>
+        </div>
+
+        <div id="creditsPopup" class="infoPopup">
+            <span class="closeButton">&times;</span>
+            <h2>製作資訊</h2>
+            <p>遊戲設計：JK</p>
+            <p>程式開發：JK</p>
+            <p>美術設計：不存在</p>
+            <p>音效設計：聾的傳人</p>
+            <p>感謝您的遊玩！</p>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
